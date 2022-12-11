@@ -104,6 +104,8 @@ namespace ScreenCapture
 
     public partial class Form1 : Form
     {
+        private Size captureSize;
+        private Bitmap screenCapture;
         private Image bgImage;
         private bool startCapture;
         private int startMouseX;
@@ -114,23 +116,28 @@ namespace ScreenCapture
         public Form1()
         {
             InitializeComponent();
-            
             this.Hide();
-            //Create the Bitmap
-            Bitmap printscreen = new Bitmap(Screen.PrimaryScreen.Bounds.Width,
-                Screen.PrimaryScreen.Bounds.Height);
-            this.Size = new Size(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
-            //Create the Graphic Variable with screen Dimensions
-            Graphics graphics = Graphics.FromImage(printscreen as Image);
-            //Copy Image from the screen
-            graphics.CopyFromScreen(0, 0, 0, 0, printscreen.Size);
-            //Create a temporal memory stream for the image
+
+            screenCapture = ScreenCapture();
+            captureSize = screenCapture.Size;
+
+
+            this.StartPosition = FormStartPosition.Manual;
+            this.Location = GetOverallDesktopRectangle().Location;
+            this.Size = captureSize;
+
+            MaximizeBox = false;
+            MinimizeBox = false;
+            ShowIcon = false;
+            ShowInTaskbar = false;
+
+
             using (MemoryStream s = new MemoryStream())
             {
                 //save graphic variable into memory
-                printscreen.Save(s, ImageFormat.Bmp);
+                screenCapture.Save(s, ImageFormat.Bmp);
                 bgImage = Image.FromStream(s);
-                pictureBox1.Size = new System.Drawing.Size(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
+                pictureBox1.Size = captureSize;
                 //set the picture box with temporary stream
                 pictureBox1.Image = Image.FromStream(s);
             }
@@ -142,8 +149,7 @@ namespace ScreenCapture
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            mouseX = MousePosition.X;
-            mouseY = MousePosition.Y;
+
 
             pictureBox1.Invalidate();
         }
@@ -158,8 +164,8 @@ namespace ScreenCapture
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
-            startMouseX = MousePosition.X;
-            startMouseY = MousePosition.Y;
+            startMouseX = e.X;
+            startMouseY = e.Y;
             startCapture = true;
         }
 
@@ -167,18 +173,18 @@ namespace ScreenCapture
         {
             startCapture = false;
 
-            
+
             try
             {
                 var newImage = new Bitmap(capturedRectangle.Width, capturedRectangle.Height);
                 var a = Graphics.FromImage(newImage);
-                a.DrawImage(pictureBox1.Image,0,0,capturedRectangle, GraphicsUnit.Pixel);
-                
+                a.DrawImage(pictureBox1.Image, 0, 0, capturedRectangle, GraphicsUnit.Pixel);
+
                 newImage.Save("C:\\Ricky\\selected.bmp");
                 a.Dispose();
                 newImage.Dispose();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var a = ex;
             }
@@ -187,7 +193,13 @@ namespace ScreenCapture
                 this.Close();
             }
 
-            
+
+        }
+
+        private void PictureBox1_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
+        {
+            mouseX = e.X;
+            mouseY = e.Y;
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
@@ -200,6 +212,57 @@ namespace ScreenCapture
                     new Size(mouseX - startMouseX, mouseY - startMouseY));
                 e.Graphics.DrawRectangle(new Pen(Color.Red, 2), capturedRectangle);
             }
+        }
+
+        public Bitmap ScreenCapture()
+        {
+            // Initialize the virtual screen to dummy values
+            int screenLeft = int.MaxValue;
+            int screenTop = int.MaxValue;
+            int screenRight = int.MinValue;
+            int screenBottom = int.MinValue;
+
+            // Enumerate system display devices
+            int deviceIndex = 0;
+            while (true)
+            {
+                NativeUtilities.DisplayDevice deviceData = new NativeUtilities.DisplayDevice { cb = Marshal.SizeOf(typeof(NativeUtilities.DisplayDevice)) };
+                if (NativeUtilities.EnumDisplayDevices(null, deviceIndex, ref deviceData, 0) != 0)
+                {
+                    // Get the position and size of this particular display device
+                    NativeUtilities.DEVMODE devMode = new NativeUtilities.DEVMODE();
+                    if (NativeUtilities.EnumDisplaySettings(deviceData.DeviceName, NativeUtilities.ENUM_CURRENT_SETTINGS, ref devMode))
+                    {
+                        // Update the virtual screen dimensions
+                        screenLeft = Math.Min(screenLeft, devMode.dmPositionX);
+                        screenTop = Math.Min(screenTop, devMode.dmPositionY);
+                        screenRight = Math.Max(screenRight, devMode.dmPositionX + devMode.dmPelsWidth);
+                        screenBottom = Math.Max(screenBottom, devMode.dmPositionY + devMode.dmPelsHeight);
+                    }
+                    deviceIndex++;
+                }
+                else
+                    break;
+            }
+
+            // Create a bitmap of the appropriate size to receive the screen-shot.
+            Bitmap bmp = new Bitmap(screenRight - screenLeft, screenBottom - screenTop);
+
+            // Draw the screen-shot into our bitmap.
+            Graphics g = Graphics.FromImage(bmp);
+            g.CopyFromScreen(screenLeft, screenTop, 0, 0, bmp.Size);
+
+            // Stuff the bitmap into a file
+            bmp.Save("C:\\Ricky\\allscreens.bmp", System.Drawing.Imaging.ImageFormat.Png);
+
+            return bmp;
+
+        }
+
+        private static Rectangle GetOverallDesktopRectangle()
+        {
+            var rect = new Rectangle(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
+            return Screen.AllScreens.Aggregate(rect, (current, screen) => Rectangle.Union(current, screen.Bounds));
         }
     }
 }
