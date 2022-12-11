@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33110.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScreenCapture", "ScreenCapture\ScreenCapture.csproj", "{EB5A97F2-E3BF-46F3-8028-AF0BFFC2BE3B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EB5A97F2-E3BF-46F3-8028-AF0BFFC2BE3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB5A97F2-E3BF-46F3-8028-AF0BFFC2BE3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB5A97F2-E3BF-46F3-8028-AF0BFFC2BE3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB5A97F2-E3BF-46F3-8028-AF0BFFC2BE3B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5FA2FA9E-3155-41B3-B7B1-150842ECAE73}
+	EndGlobalSection
+EndGlobal
